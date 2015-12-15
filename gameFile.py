@@ -25,34 +25,47 @@ for i in xrange(0, 1):
     for index in xrange(0, len(sprites)):
         screen.blit(sprites[index], (imageWidth*index, imageWidth*0))
 
+def load_image(name, colorkey=None):
+    fullname = name#os.path.join('images', name)
+    try:
+        image = pygame.image.load(fullname)
+    except pygame.error, message:
+        print 'Cannot load image:', name
+        raise SystemExit, message
+    image = image.convert()
+    if colorkey is not None:
+        if colorkey is -1:
+            colorkey = image.get_at((0,0))
+        image.set_colorkey(colorkey, RLEACCEL)
+    return image
+
 class graphicsController:
-    sprites=[]
-    screen
-    
     screenWidth=800
     screenHeight=640
     tileWidth=64
     tileHeight=64
         
     def __init__(self, imagePath=None):
-        screen=pygame.display.set_mode((screenWidth, screenHeight), )
+        self.sprites=[]
+        self.screen=pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
         if imagePath is not None:
-            loadImagesFromDirectory(sprites, imagePath) 
+            self.loadImages()
         
-    def loadImagesFromDirectory(spriteLoc, path): #Maybe load images should return sprite list instead?
-        for root, dirs, files in os.walk(path):
-            for fileName in files:
-                imagePath=os.path.join(root, fileName)
-                imageLocations.append(imagePath)
-
+    def loadImages(self):
         for imagePath in imageLocations:
-            image=pygame.image.load(imagePath)
+            image=load_image(imagePath)
             image=pygame.transform.smoothscale(image,(imageWidth, imageHeight))
-            spriteLoc.append(image)
+            self.sprites.append(image)
 
-    def drawTile(x, y, spriteIndex):
+    def drawTile(self, x, y, spriteIndex):
         drawLoc=(x*tileWidth, y*tileHeight)
         screen.blit(sprites[spriteIndex], drawLoc)
+
+    def drawGrid(self, drawlist):
+        for x in xrange(0,len(drawlist)):
+            row = drawlist[x]
+            for y in range(0,len(row)):
+                drawTile(x,y,row[y])
 
 class gameController:
     pass
@@ -65,7 +78,7 @@ class gameObject:
         data['yPos']=y
         data['spriteIndex']=spriteIndex
 
-class moster:
+class monster:
     pass
 
 class player:
