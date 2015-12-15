@@ -1,4 +1,5 @@
 import sys, pygame, os
+from pygame.locals import *
 pygame.init()
 
 windowWidth=640
@@ -9,21 +10,6 @@ imageWidth=128
 
 screen=pygame.display.set_mode((windowWidth, windowHeight), pygame.RESIZABLE)
 sprites=[]
-
-for i in xrange(0, 1):
-    imageLocations=[]
-    for root, dirs, files in os.walk('images'):
-        for fileName in files:
-            imagePath=os.path.join(root, fileName)
-            imageLocations.append(imagePath)
-
-    for imagePath in imageLocations:
-        image=pygame.image.load(imagePath)
-        image=pygame.transform.smoothscale(image,(imageWidth, imageHeight))
-        sprites.append(image)
-
-    for index in xrange(0, len(sprites)):
-        screen.blit(sprites[index], (imageWidth*index, imageWidth*0))
 
 def load_image(name, colorkey=None):
     fullname = name#os.path.join('images', name)
@@ -38,6 +24,22 @@ def load_image(name, colorkey=None):
             colorkey = image.get_at((0,0))
         image.set_colorkey(colorkey, RLEACCEL)
     return image
+
+screen.fill((20,20,20))
+for i in xrange(0, 1):
+    imageLocations=[]
+    for root, dirs, files in os.walk('images'):
+        for fileName in files:
+            imagePath=os.path.join(root, fileName)
+            imageLocations.append(imagePath)
+
+    for imagePath in imageLocations:
+        image=load_image(imagePath, -1)
+        image=pygame.transform.smoothscale(image,(imageWidth, imageHeight))
+        sprites.append(image)
+
+    for index in xrange(0, len(sprites)):
+        screen.blit(sprites[index], (imageWidth*index, imageWidth*0))
 
 class graphicsController:
     screenWidth=800
