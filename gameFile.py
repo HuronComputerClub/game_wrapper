@@ -4,6 +4,8 @@ from pygame.locals import *
 BLACK = (0,0,0)
 WHITE = (255,255,255)
 
+KEYS={"UP":273,"RIGHT":275,"DOWN":274,"LEFT":276}
+
 
 def load_image(name, colorkey=None):
     fullname = name
@@ -21,7 +23,7 @@ def load_image(name, colorkey=None):
     image.set_colorkey(colorkey, RLEACCEL)
     return image
 
-class graphicsController:
+class GraphicsController:
     screenWidth=800
     screenHeight=640
     tileWidth=32
@@ -29,12 +31,12 @@ class graphicsController:
         
     def __init__(self, imagePath=None):
         self.sprites=[]
-        self.screen=pygame.display.set_mode((graphicsController.screenWidth, graphicsController.screenHeight), pygame.RESIZABLE)
+        self.screen=pygame.display.set_mode((GraphicsController.screenWidth, GraphicsController.screenHeight), pygame.RESIZABLE)
         if imagePath is not None:
             self.loadImages()
 
     def drawTile(self, x, y, spriteIndex):
-        drawLoc=(x*graphicsController.tileWidth, y*graphicsController.tileHeight)
+        drawLoc=(x*GraphicsController.tileWidth, y*GraphicsController.tileHeight)
         self.screen.blit(self.sprites[spriteIndex], drawLoc)
 
     def drawGrid(self, drawlist):        
@@ -43,13 +45,13 @@ class graphicsController:
             for y in range(0,len(row)):
                 drawTile(x,y,col[y])
         
-class visualEffect:
+class VisualEffect:
     def __init__(self, imagePath, turnsLeft=1):
         self.imagePath=imagePath
         self.turnsLeft=turnsLeft
         
 
-class gameController:
+class GameController:
     def __init__(self, boardWidth=25, boardHeight=20):
         pygame.init()
         
@@ -59,13 +61,13 @@ class gameController:
         self.effects=[]
         self.backgroundImage=0
         self.errorImage=0
-        self.graphics=graphicsController()
+        self.graphics=GraphicsController()
         self.objects=[]
         self.imageDict={}
 
     def turn(self, event):
-        for gameObject in self.objects:
-            gameObject.onTurn(event)   
+        for GameObject in self.objects:
+            GameObject.onTurn(event)   
 
     def loadImages(self): #Loads all of the image files in the images folder into the game
         imageLocations=[]
@@ -86,9 +88,9 @@ class gameController:
         for y in xrange(0, self.boardHeight):
             for x in xrange(0, self.boardWidth):
                 self.graphics.drawTile(x, y, self.backgroundImage) #Draws background tiles first
-                for gameObject in self.objects:                    #Then draws gameobjects on top
-                    if gameObject.x==x and gameObject.y==y:
-                        self.graphics.drawTile(x, y, gameObject.spriteIndex)
+                for GameObject in self.objects:                    #Then draws gameobjects on top
+                    if GameObject.x==x and GameObject.y==y:
+                        self.graphics.drawTile(x, y, GameObject.spriteIndex)
                 for effect in self.effects:                        #Then draws effects on top of that
                     if effect.x==x and effect.y==y:
                         self.graphics.drawTile(x, y, effect.spriteIndex)
@@ -99,9 +101,9 @@ class gameController:
     def setBackgroundImage(self, imageName):
         self.backgroundImage=self.spriteIndexFromName(imageName)
 
-    def addGameObject(self, gameObject):
-        self.objects.append(gameObject)
-        gameObject.spriteIndex=self.spriteIndexFromName(gameObject.spriteName)
+    def addGameObject(self, GameObject):
+        self.objects.append(GameObject)
+        GameObject.spriteIndex=self.spriteIndexFromName(GameObject.spriteName)
 
     def run(self):
         """handle events as a loop"""
@@ -118,7 +120,7 @@ class gameController:
         pygame.quit()
 
         
-class gameObject:                               #The class that ingame objects inherit from
+class GameObject:                               #The class that ingame objects inherit from
     def __init__(self, x, y, spriteName):
         self.x=x
         self.y=y
@@ -129,7 +131,7 @@ class gameObject:                               #The class that ingame objects i
         pass
 
 
-class Monster(gameObject):
+class Monster(GameObject):
     def onTurn(self, event):
         direction=random.randint(1, 4)
         if direction==1: #move left
@@ -148,5 +150,5 @@ class Monster(gameObject):
             if self.y>0:
                 self.y-=1
 
-class player(gameObject):
+class Player(GameObject):
     pass

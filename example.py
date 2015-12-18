@@ -1,19 +1,28 @@
 #Example of the use of the game structure file
 
-import gameFile#or from gameFile import *
+from gameFile import *
 
-class myMonster(gameFile.Monster):
-    def onTurn(self):
-        self.x -= 1
-
-game = gameFile.gameController()
+class myMonster(Monster):
+    def onTurn(self, event = None):
+        if event.key == KEYS["RIGHT"]:
+            self.x += 1
+        elif event.key == KEYS["LEFT"]:
+            self.x -= 1
+        elif event.key == KEYS["DOWN"]:
+            self.y += 1
+        elif event.key == KEYS["UP"]:
+            self.y -= 1
+            
+game = GameController()
 game.loadImages()
 game.setBackgroundImage('borderTile.png')
 
 #create an instance of your modified monster
-neatMonster = myMonster(12, 10, 'circle.png')
+character = myMonster(1, 1, 'circle.png')
+dog = myMonster(1, 3, 'dog.png')
 
-game.addGameObject(neatMonster)
+game.addGameObject(character)
+game.addGameObject(dog)
 game.drawMap()
 
 game.run()
