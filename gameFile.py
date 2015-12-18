@@ -112,7 +112,7 @@ class GameController:
             for e in pygame.event.get():
                 if e.type==pygame.QUIT:
                     run=False
-                if e.type==pygame.KEYDOWN:               
+                if e.type==pygame.KEYDOWN or e.type==pygame.MOUSEBUTTONDOWN:               
                     self.turn(e)
                     self.drawMap()
             pygame.display.flip()
@@ -120,7 +120,7 @@ class GameController:
         pygame.quit()
 
         
-class GameObject:                               #The class that ingame objects inherit from
+class GameObject: #The class that ingame objects inherit from
     def __init__(self, x, y, spriteName):
         self.x=x
         self.y=y

@@ -1,19 +1,23 @@
 #Example of the use of the game structure file
+import pygame
 
 from gameFile import *
 
 class myMonster(Monster):
     def onTurn(self, event = None):
-        if event.key == KEYS["RIGHT"]:
-            self.x += 1
-        elif event.key == KEYS["LEFT"]:
-            self.x -= 1
-        elif event.key == KEYS["DOWN"]:
-            self.y += 1
-        elif event.key == KEYS["UP"]:
-            self.y -= 1
+        if event.type == pygame.KEYDOWN:
+            if event.key == KEYS["RIGHT"]:
+                self.x += 1
+            elif event.key == KEYS["LEFT"]:
+                self.x -= 1
+            elif event.key == KEYS["DOWN"]:
+                self.y += 1
+            elif event.key == KEYS["UP"]:
+                self.y -= 1
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            print event.pos
             
-game = GameController(15,15,20)
+game = GameController(20,20,35)
 game.loadImages()
 game.setBackgroundImage('borderTile.png')
 
