@@ -13,7 +13,7 @@ class myMonster(Monster):
         elif event.key == KEYS["UP"]:
             self.y -= 1
             
-game = GameController()
+game = GameController(15,15,20)
 game.loadImages()
 game.setBackgroundImage('borderTile.png')
 

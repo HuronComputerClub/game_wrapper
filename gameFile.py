@@ -18,25 +18,23 @@ def load_image(name, colorkey=None):
 
     corner = image.get_at((0,0)) #color at top left corner
     if colorkey is None and (corner==BLACK or corner==WHITE):
-        #no color specified. Corner is black or white
+        #no color specified - only make black or white -> transparent
         colorkey = corner
     image.set_colorkey(colorkey, RLEACCEL)
     return image
 
-class GraphicsController:
-    screenWidth=800
-    screenHeight=640
-    tileWidth=32
-    tileHeight=32
+class GraphicsController:       
+    def __init__(self, screenWidth, screenHeight, tileWidth, tileHeight):
+        self.screenWidth = screenWidth
+        self.screenHeight = screenHeight
+        self.tileWidth = tileWidth
+        self.tileHeight = tileHeight
         
-    def __init__(self, imagePath=None):
         self.sprites=[]
-        self.screen=pygame.display.set_mode((GraphicsController.screenWidth, GraphicsController.screenHeight), pygame.RESIZABLE)
-        if imagePath is not None:
-            self.loadImages()
+        self.screen=pygame.display.set_mode((self.screenWidth, self.screenHeight), pygame.RESIZABLE)
 
     def drawTile(self, x, y, spriteIndex):
-        drawLoc=(x*GraphicsController.tileWidth, y*GraphicsController.tileHeight)
+        drawLoc=(x*self.tileWidth, y*self.tileHeight)
         self.screen.blit(self.sprites[spriteIndex], drawLoc)
 
     def drawGrid(self, drawlist):        
@@ -52,7 +50,7 @@ class VisualEffect:
         
 
 class GameController:
-    def __init__(self, boardWidth=25, boardHeight=20):
+    def __init__(self, boardWidth=25, boardHeight=20, tileSize = 32):
         pygame.init()
         
         self.boardWidth=boardWidth
@@ -61,7 +59,9 @@ class GameController:
         self.effects=[]
         self.backgroundImage=0
         self.errorImage=0
-        self.graphics=GraphicsController()
+        self.graphics=GraphicsController(screenWidth = boardWidth*tileSize,
+                                         screenHeight = boardHeight*tileSize,
+                                         tileWidth = tileSize, tileHeight = tileSize)
         self.objects=[]
         self.imageDict={}
 
