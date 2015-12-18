@@ -129,7 +129,7 @@ class gameObject:                               #The class that ingame objects i
         pass
 
 
-class monster(gameObject):
+class Monster(gameObject):
     def onTurn(self):
         direction=random.randint(1, 4)
         if direction==1: #move left
