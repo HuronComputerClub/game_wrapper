@@ -1,19 +1,24 @@
 import sys, pygame, os, random
 from pygame.locals import *
 
+BLACK = (0,0,0)
+WHITE = (255,255,255)
+
 
 def load_image(name, colorkey=None):
     fullname = name
     try:
         image = pygame.image.load(fullname)
-    except pygame.error, message:
+    except pygame.error as message:
         print 'Cannot load image:', name
-        raise SystemExit, message
+        raise SystemExit(message)
     image = image.convert()
-    if colorkey is not None:
-        if colorkey is -1:
-            colorkey = image.get_at((0,0))
-        image.set_colorkey(colorkey, RLEACCEL)
+
+    corner = image.get_at((0,0)) #color at top left corner
+    if colorkey is None and (corner==BLACK or corner==WHITE):
+        #no color specified. Corner is black or white
+        colorkey = corner
+    image.set_colorkey(colorkey, RLEACCEL)
     return image
 
 class graphicsController:
