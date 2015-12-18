@@ -32,12 +32,6 @@ class graphicsController:
         self.screen=pygame.display.set_mode((graphicsController.screenWidth, graphicsController.screenHeight), pygame.RESIZABLE)
         if imagePath is not None:
             self.loadImages()
-        
-    def loadImages(self):
-        for imagePath in imageLocations:
-            image=load_image(imagePath)
-            image=pygame.transform.smoothscale(image,(imageWidth, imageHeight))
-            self.sprites.append(image)
 
     def drawTile(self, x, y, spriteIndex):
         drawLoc=(x*graphicsController.tileWidth, y*graphicsController.tileHeight)
@@ -64,6 +58,7 @@ class gameController:
         self.stickerBoard=[[-1 for y in range(0, boardHeight)] for x in xrange(0, boardWidth)]
         self.effects=[]
         self.backgroundImage=0
+        self.errorImage=0
         self.graphics=graphicsController()
         self.objects=[]
         self.imageDict={}
@@ -81,7 +76,10 @@ class gameController:
                 image=load_image(imagePath)
                 image=pygame.transform.smoothscale(image, (self.graphics.tileWidth, self.graphics.tileHeight))
                 self.graphics.sprites.append(image)
-                self.imageDict[fileName]=len(self.graphics.sprites)-1
+                imageIndex=len(self.graphics.sprites)-1
+                self.imageDict[fileName]=imageIndex
+                if fileName=='error.png':
+                    self.errorImage=imageIndex
 
     def drawMap(self):
         for y in xrange(0, self.boardHeight):
@@ -94,12 +92,11 @@ class gameController:
                     if effect.x==x and effect.y==y:
                         self.graphics.drawTile(x, y, effect.spriteIndex)
 
-    def spriteIndexFromName(self, imageName):   #Doesn't have any error handling for bad image name
-        return self.imageDict[imageName]
+    def spriteIndexFromName(self, imageName):
+        return self.imageDict.get(imageName, self.errorImage)
 
-    def setBackgroundImage(self, imageName):    #Doesn't have any error handling for bad image name
-        newBackground=self.imageDict[imageName]
-        self.backgroundImage=newBackground
+    def setBackgroundImage(self, imageName):
+        self.backgroundImage=self.spriteIndexFromName(imageName)
 
     def addGameObject(self, gameObject):
         self.objects.append(gameObject)
@@ -152,14 +149,3 @@ class monster(gameObject):
 
 class player(gameObject):
     pass
-
-
-
-##game=gameController()
-##game.loadImages()
-##game.setBackgroundImage('caveTile.png')
-##neatMonster=monster(12, 10, 'dog.png')
-##game.addGameObject(neatMonster)
-##game.drawMap()
-##
-##game.run()
