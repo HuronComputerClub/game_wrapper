@@ -63,9 +63,9 @@ class gameController:
         self.objects=[]
         self.imageDict={}
 
-    def turn(self):
+    def turn(self, event):
         for gameObject in self.objects:
-            gameObject.onTurn()   
+            gameObject.onTurn(event)   
 
     def loadImages(self): #Loads all of the image files in the images folder into the game
         imageLocations=[]
@@ -111,7 +111,7 @@ class gameController:
                 if e.type==pygame.QUIT:
                     run=False
                 if e.type==pygame.KEYDOWN:               
-                    self.turn()
+                    self.turn(e)
                     self.drawMap()
             pygame.display.flip()
     
@@ -125,12 +125,12 @@ class gameObject:                               #The class that ingame objects i
         self.spriteName=spriteName
         self.spriteIndex=None
 
-    def onTurn(self):
+    def onTurn(self, event):
         pass
 
 
 class Monster(gameObject):
-    def onTurn(self):
+    def onTurn(self, event):
         direction=random.randint(1, 4)
         if direction==1: #move left
             if self.x>1:
