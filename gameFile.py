@@ -57,6 +57,8 @@ class visualEffect:
 
 class gameController:
     def __init__(self, boardWidth=25, boardHeight=20):
+        pygame.init()
+        
         self.boardWidth=boardWidth
         self.boardHeight=boardHeight
         self.stickerBoard=[[-1 for y in range(0, boardHeight)] for x in xrange(0, boardWidth)]
@@ -102,7 +104,22 @@ class gameController:
     def addGameObject(self, gameObject):
         self.objects.append(gameObject)
         gameObject.spriteIndex=self.spriteIndexFromName(gameObject.spriteName)
-                
+
+    def run(self):
+        """handle events as a loop"""
+        run=True
+        while run==True:
+            for e in pygame.event.get():
+                if e.type==pygame.QUIT:
+                    run=False
+                if e.type==pygame.KEYDOWN:               
+                    self.turn()
+                    self.drawMap()
+            pygame.display.flip()
+    
+        pygame.quit()
+
+        
 class gameObject:                               #The class that ingame objects inherit from
     def __init__(self, x, y, spriteName):
         self.x=x
@@ -137,22 +154,12 @@ class player(gameObject):
     pass
 
 
-pygame.init()
-game=gameController()
-game.loadImages()
-game.setBackgroundImage('caveTile.png')
-neatMonster=monster(12, 10, 'dog.png')
-game.addGameObject(neatMonster)
-game.drawMap()
 
-run=True
-while run==True:
-    for e in pygame.event.get():
-        if e.type==pygame.QUIT:
-            run=False
-        if e.type==pygame.KEYDOWN:               
-            game.turn()
-            game.drawMap()
-    pygame.display.flip()
-    
-pygame.quit()
+##game=gameController()
+##game.loadImages()
+##game.setBackgroundImage('caveTile.png')
+##neatMonster=monster(12, 10, 'dog.png')
+##game.addGameObject(neatMonster)
+##game.drawMap()
+##
+##game.run()
