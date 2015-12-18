@@ -11,7 +11,7 @@ def load_image(name, colorkey=None):
         image = pygame.image.load(fullname)
     except pygame.error as message:
         print 'Cannot load image:', name
-        raise SystemExit(message)
+        return None
     image = image.convert()
 
     corner = image.get_at((0,0)) #color at top left corner
@@ -74,12 +74,13 @@ class gameController:
                 imagePath=os.path.join(root, fileName)
                 imageLocations.append(imagePath)
                 image=load_image(imagePath)
-                image=pygame.transform.smoothscale(image, (self.graphics.tileWidth, self.graphics.tileHeight))
-                self.graphics.sprites.append(image)
-                imageIndex=len(self.graphics.sprites)-1
-                self.imageDict[fileName]=imageIndex
-                if fileName=='error.png':
-                    self.errorImage=imageIndex
+                if image!=None:
+                    image=pygame.transform.smoothscale(image, (self.graphics.tileWidth, self.graphics.tileHeight))
+                    self.graphics.sprites.append(image)
+                    imageIndex=len(self.graphics.sprites)-1
+                    self.imageDict[fileName]=imageIndex
+                    if fileName=='error.png':
+                        self.errorImage=imageIndex
 
     def drawMap(self):
         for y in xrange(0, self.boardHeight):
