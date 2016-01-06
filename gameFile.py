@@ -1,4 +1,4 @@
-import sys, pygame, os, random
+import sys, pygame, os, random, time
 from pygame.locals import *
 
 BLACK = (0,0,0)
@@ -64,10 +64,9 @@ class GameController:
                                          tileWidth = tileSize, tileHeight = tileSize)
         self.objects=[]
         self.imageDict={}
-
-    def turn(self, event):
-        for GameObject in self.objects:
-            GameObject.onTurn(event)   
+        self.tileSize=tileSize
+        self.loadImages()
+        self.player=None  
 
     def loadImages(self): #Loads all of the image files in the images folder into the game
         imageLocations=[]
@@ -104,21 +103,47 @@ class GameController:
     def addGameObject(self, GameObject):
         self.objects.append(GameObject)
         GameObject.spriteIndex=self.spriteIndexFromName(GameObject.spriteName)
+        GameObject.controller=self
 
     def run(self):
         """handle events as a loop"""
         run=True
+        self.drawMap()
+        objectTurn=0
         while run==True:
+            currentObject=self.objects[objectTurn] #The object whose turn it is
             for e in pygame.event.get():
                 if e.type==pygame.QUIT:
                     run=False
-                if e.type==pygame.KEYDOWN or e.type==pygame.MOUSEBUTTONDOWN:               
-                    self.turn(e)
-                    self.drawMap()
+                if isinstance(currentObject, Player):
+                    if currentObject.tryTurn(e): #The player gets the event and uses it to try to move.
+                        objectTurn=(objectTurn+1)%len(self.objects)                       
+            if isinstance(currentObject, Monster):
+                currentObject.takeTurn()
+                time.sleep(.5)
+                objectTurn=(objectTurn+1)%len(self.objects)
+            elif not isinstance(currentObject, Player): #currentObject is not a player or a monster. It is likely scenery or an objective.
+                currentObject.takeTurn()
+                objectTurn=(objectTurn+1)%len(self.objects)
+            self.drawMap()
             pygame.display.flip()
-    
         pygame.quit()
 
+    def getTile(self, pos):
+        tileX=pos[0]/self.tileSize
+        tileY=pos[1]/self.tileSize
+        return (tileX, tileY)
+
+    def getPlayerLoc(self):
+        for obj in self.objects:
+            if isinstance(obj, Player):
+                return (obj.x, obj.y)
+
+    def checkSpace(self, x, y):
+        for obj in self.objects:
+            if obj.x==x and obj.y==y:
+                return True
+        return False
         
 class GameObject: #The class that ingame objects inherit from
     def __init__(self, x, y, spriteName):
@@ -127,28 +152,28 @@ class GameObject: #The class that ingame objects inherit from
         self.spriteName=spriteName
         self.spriteIndex=None
 
-    def onTurn(self, event):
+    def takeTurn(self, event):
         pass
 
-
 class Monster(GameObject):
-    def onTurn(self, event):
-        direction=random.randint(1, 4)
-        if direction==1: #move left
-            if self.x>1:
-                self.x-=1
-            
-        if direction==2: #move up
-            if self.y<19:
-                self.y+=1
-
-        if direction==3: #move right
-            if self.x<24:
-                self.x+=1
-
-        if direction==4: #move down
-            if self.y>0:
-                self.y-=1
+    def takeTurn(self, event):
+        pass
 
 class Player(GameObject):
-    pass
+    def __init__(self, x, y, spriteName):
+        self.x=x
+        self.y=y
+        self.spriteName=spriteName
+        self.spriteIndex=None
+        self.speed=2
+        
+    def tryTurn(self, event):
+        if event.type==pygame.MOUSEBUTTONDOWN:
+            clickLocation=self.controller.getTile(event.pos)
+            if self.controller.checkSpace(clickLocation[0], clickLocation[1]): #tried to move onto another object
+                return False
+            self.x=clickLocation[0]
+            self.y=clickLocation[1]
+            return True
+        return False
+        
