@@ -110,23 +110,27 @@ class GameController:
         run=True
         self.drawMap()
         objectTurn=0
+        clock=pygame.time.Clock()
         while run==True:
             currentObject=self.objects[objectTurn] #The object whose turn it is
+            
             for e in pygame.event.get():
                 if e.type==pygame.QUIT:
                     run=False
                 if isinstance(currentObject, Player):
                     if currentObject.tryTurn(e): #The player gets the event and uses it to try to move.
-                        objectTurn=(objectTurn+1)%len(self.objects)                       
-            if isinstance(currentObject, Monster):
-                currentObject.takeTurn()
-                time.sleep(.5)
-                objectTurn=(objectTurn+1)%len(self.objects)
-            elif not isinstance(currentObject, Player): #currentObject is not a player or a monster. It is likely scenery or an objective.
+                        objectTurn=(objectTurn+1)%len(self.objects)
+                        
+            if not isinstance(currentObject, Player):
                 currentObject.takeTurn()
                 objectTurn=(objectTurn+1)%len(self.objects)
+                if isinstance(currentObject, Monster):
+                    time.sleep(.5)
+                    
             self.drawMap()
             pygame.display.flip()
+            clock.tick(10)
+            print "tick"
         pygame.quit()
 
     def getTile(self, pos):
