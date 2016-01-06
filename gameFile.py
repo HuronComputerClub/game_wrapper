@@ -110,27 +110,23 @@ class GameController:
         run=True
         self.drawMap()
         objectTurn=0
-        clock=pygame.time.Clock()
         while run==True:
             currentObject=self.objects[objectTurn] #The object whose turn it is
-            
             for e in pygame.event.get():
                 if e.type==pygame.QUIT:
                     run=False
                 if isinstance(currentObject, Player):
                     if currentObject.tryTurn(e): #The player gets the event and uses it to try to move.
-                        objectTurn=(objectTurn+1)%len(self.objects)
-                        
-            if not isinstance(currentObject, Player):
+                        objectTurn=(objectTurn+1)%len(self.objects)                       
+            if isinstance(currentObject, Monster):
+                currentObject.takeTurn()
+                time.sleep(.5)
+                objectTurn=(objectTurn+1)%len(self.objects)
+            elif not isinstance(currentObject, Player): #currentObject is not a player or a monster. It is likely scenery or an objective.
                 currentObject.takeTurn()
                 objectTurn=(objectTurn+1)%len(self.objects)
-                if isinstance(currentObject, Monster):
-                    time.sleep(.5)
-                    
             self.drawMap()
             pygame.display.flip()
-            clock.tick(10)
-            print "tick"
         pygame.quit()
 
     def getTile(self, pos):
@@ -170,14 +166,18 @@ class Player(GameObject):
         self.spriteName=spriteName
         self.spriteIndex=None
         self.speed=2
-        
+    def mouse(self, event):
+        return self.controller.getTile(event.pos)[0],self.controller.getTile(event.pos)[1]
     def tryTurn(self, event):
-        if event.type==pygame.MOUSEBUTTONDOWN:
-            clickLocation=self.controller.getTile(event.pos)
-            if self.controller.checkSpace(clickLocation[0], clickLocation[1]): #tried to move onto another object
-                return False
-            self.x=clickLocation[0]
-            self.y=clickLocation[1]
-            return True
+        if event.type==pygame.MOUSEBUTTONDOWN or \
+           event.type==pygame.KEYDOWN:
+            return self.takeTurn(event)
         return False
-        
+    def takeTurn(self, event):
+        if event.type==pygame.MOUSEBUTTONDOWN:
+            x,y = self.mouse(event)
+            if self.controller.checkSpace(x,y):
+                return False #the player cannot move here
+            self.x = x
+            self.y = y
+            return True
