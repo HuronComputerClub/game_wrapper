@@ -168,16 +168,34 @@ class Player(GameObject):
         self.speed=2
     def mouse(self, event):
         return self.controller.getTile(event.pos)[0],self.controller.getTile(event.pos)[1]
+    def spaceFree(self, x, y):
+        return not self.controller.checkSpace(x,y)
     def tryTurn(self, event):
-        if event.type==pygame.MOUSEBUTTONDOWN or \
-           event.type==pygame.KEYDOWN:
+        if event.type==pygame.MOUSEBUTTONDOWN or event.type==pygame.KEYDOWN:
             return self.takeTurn(event)
         return False
     def takeTurn(self, event):
         if event.type==pygame.MOUSEBUTTONDOWN:
             x,y = self.mouse(event)
-            if self.controller.checkSpace(x,y):
-                return False #the player cannot move here
-            self.x = x
-            self.y = y
-            return True
+            if self.spaceFree(x,y):#the player can move here
+                self.x = x
+                self.y = y
+                return True
+        elif event.type==pygame.KEYDOWN:
+            x=self.x
+            y=self.y
+            if event.key == KEYS["RIGHT"]:
+                x += 1
+            elif event.key == KEYS["LEFT"]:
+                x -= 1
+            elif event.key == KEYS["DOWN"]:
+                y += 1
+            elif event.key == KEYS["UP"]:
+                y -= 1
+            else:
+                return False
+            if self.spaceFree(x,y):
+                self.x=x
+                self.y=y
+                return True
+        return False
