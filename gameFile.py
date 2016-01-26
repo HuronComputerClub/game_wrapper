@@ -1,4 +1,4 @@
-import sys, pygame, os, random, time
+import sys, pygame, os, random, time, math
 from pygame.locals import *
 
 BLACK = (0,0,0)
@@ -22,6 +22,9 @@ def load_image(name, colorkey=None):
         colorkey = corner
     image.set_colorkey(colorkey, RLEACCEL)
     return image
+
+def distance(p0, p1):
+    return math.sqrt((p0[0]-p1[0])**2 + (p0[1]-p1[1])**2)
 
 class GraphicsController:       
     def __init__(self, screenWidth, screenHeight, tileWidth, tileHeight):
@@ -111,18 +114,18 @@ class GameController:
         self.drawMap()
         objectTurn=0
         while run==True:
-            currentObject=self.objects[objectTurn] #The object whose turn it is
-            for e in pygame.event.get():
+            currentObject=self.objects[objectTurn]  #The object whose turn it is
+            for e in pygame.event.get():            #Handle events
                 if e.type==pygame.QUIT:
                     run=False
-                if isinstance(currentObject, Player):
-                    if currentObject.tryTurn(e): #The player gets the event and uses it to try to move.
+                if isinstance(currentObject, Player): #It is the player's turn
+                    if currentObject.tryTurn(e):    #The player trys to move with the event
                         objectTurn=(objectTurn+1)%len(self.objects)                       
-            if isinstance(currentObject, Monster):
+            if isinstance(currentObject, Monster):  #It is a monster's turn
                 currentObject.takeTurn()
                 time.sleep(.5)
                 objectTurn=(objectTurn+1)%len(self.objects)
-            elif not isinstance(currentObject, Player): #currentObject is not a player or a monster. It is likely scenery or an objective.
+            elif not isinstance(currentObject, Player): #It is not a player or a monster's turn, it is likely scenery or an object's turn
                 currentObject.takeTurn()
                 objectTurn=(objectTurn+1)%len(self.objects)
             self.drawMap()
@@ -145,7 +148,7 @@ class GameController:
                 return True
         return False
         
-class GameObject: #The class that ingame objects inherit from
+class GameObject(object): #The class that ingame objects inherit from
     def __init__(self, x, y, spriteName):
         self.x=x
         self.y=y
@@ -156,16 +159,51 @@ class GameObject: #The class that ingame objects inherit from
         pass
 
 class Monster(GameObject):
+    def __init__(self, x, y, spriteName):
+        super(Monster, self).__init__(x, y, spriteName)
+        self.speed=2
+    
     def takeTurn(self, event):
         pass
 
+    #Return values:
+    #0 means monster made it to the goal
+    #1 means monster moved towards the goal
+    #2 means monster is stuck next to the goal
+    #3 means monster is stuck away from the goal
+    def moveTowardsSpace(self, x, y, moves):
+        currentPos=(self.x, self.y)
+        goal=(x, y)
+        while moves>0:
+            possibleMoves=((1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1))
+            bestDist=distance(currentPos, goal)
+            bestMove=(0, 0)
+            for move in possibleMoves:
+                newPos=[currentPos[0]+move[0], currentPos[1]+move[1]]
+                if not self.controller.checkSpace(newPos[0], newPos[1]):
+                    dist=distance(newPos, goal)
+                    if dist<bestDist:
+                        bestDist=dist
+                        bestMove=move
+            if bestMove!=(0, 0):
+                self.x+=bestMove[0]
+                self.y+=bestMove[1]
+                currentPos=(self.x, self.y)
+                moves-=1
+            else:
+                if bestDist==0:
+                    return 0
+                if bestDist<2:
+                    return 2
+                if bestDist>=2:
+                    return 3
+        return 1
+
 class Player(GameObject):
     def __init__(self, x, y, spriteName):
-        self.x=x
-        self.y=y
-        self.spriteName=spriteName
-        self.spriteIndex=None
+        super(Player, self).__init__(x, y, spriteName)
         self.speed=2
+        
     def mouse(self, event):
         return self.controller.getTile(event.pos)[0],self.controller.getTile(event.pos)[1]
     def spaceFree(self, x, y):
