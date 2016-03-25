@@ -8,9 +8,8 @@ KEYS={"UP":273,"RIGHT":275,"DOWN":274,"LEFT":276}
 
 
 def load_image(name, colorkey=None):
-    fullname = name
     try:
-        image = pygame.image.load(fullname)
+        image = pygame.image.load(name)
     except pygame.error as message:
         print 'Cannot load image:', name
         return None
@@ -158,6 +157,7 @@ class GameObject(object): #The class that ingame objects inherit from
     def takeTurn(self, event):
         pass
 
+
 class Monster(GameObject):
     def __init__(self, x, y, spriteName):
         super(Monster, self).__init__(x, y, spriteName)
@@ -237,3 +237,5 @@ class Player(GameObject):
                 self.y=y
                 return True
         return False
+game = GameController(20,20,35)
+game.setBackgroundImage('borderTile.png')

@@ -8,8 +8,6 @@ class myMonster(Monster):
         playerLoc=self.controller.getPlayerLoc()
         self.moveTowardsSpace(playerLoc[0], playerLoc[1], self.speed)
 
-        
-            
 game = GameController(20,20,35)
 game.setBackgroundImage('borderTile.png')
 
