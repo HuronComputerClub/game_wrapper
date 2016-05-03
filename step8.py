@@ -11,35 +11,42 @@ from gameFile import *
 player = Player(1, 2, 'cat.png')
 game.addGameObject(player)
 
-for x in range(10):
-    #put walls down at (x,y)
-    pass
+secondCoin = Coin(10, 15)
+thirdCoin = Coin(15, 10)
+fourthCoin = Coin(15, 15)
+game.addGameObject(secondCoin)
+game.addGameObject(thirdCoin)
+game.addGameObject(fourthCoin)
+
+for x in range(5):
+    game.placeWall(x+5, 5)
 
 #Scope!
 def distbtw(o1, o2):
-    return abs(o1x-o2x) + abs(01y-02y)
+    return abs(o1.x - o2.x) + abs(o1.y - o2.y)
 
 
 class myMonster(Monster):
     def takeTurn(self):
-        coins = getall("Coin")
-        nearestcoin = coins[0]
+        coins = game.getAllOfType(Coin)
+        nearestCoin = coins[0]
         for coin in coins:
-            dist = distbtw(coin, Player):
-            if dist < distbtw(nearestcoin, Player):
-                nearestcoin = coin
-        movetothing(nearestcoin)
-    def movetothing(self):
-        if thingx > myx:
-            moveright
-        elif thingy > myy:
-            moveup
-        elif thingx < myx:
-            moveleft
-        elif thingy < myy:
-            movedown
+            dist = distbtw(coin, player)
+            if dist < distbtw(nearestCoin, player):
+                nearestCoin = coin
+        self.moveToThing(nearestCoin)
+    def moveToThing(self, thing):
+        game.log(str(self.x - thing.x) + ", " + str(self.y - thing.y))
+        if thing.x > self.x:
+            self.moveRight()
+        elif thing.y > self.y:
+            self.moveUp()
+        elif thing.x < self.x:
+            self.moveLeft()
+        elif thing.y < self.y:
+            self.moveDown()
     def distanceTo(self, thing):
-        return abs(myx-thingx) + abs(myy-thingy)
+        return abs(self.x - thing.x) + abs(self.y - thing.y)
 
 monst = myMonster(1,1,'dog.png')
 game.addGameObject(monst)

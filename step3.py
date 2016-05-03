@@ -12,8 +12,7 @@ player = Player(1, 2, 'cat.png')
 game.addGameObject(player)
 
 for x in range(10):
-    #put walls down at (x,y)
-    pass
+    game.placeWall(x+5, 5)
 
 class myMonster(Monster):
     def takeTurn(self):

@@ -12,21 +12,20 @@ player = Player(1, 2, 'cat.png')
 game.addGameObject(player)
 
 for x in range(10):
-    #put walls down at (x,y)
-    pass
-
+    game.placeWall(x+5, 5)
+    
 class myMonster(Monster):
     def takeTurn(self):
-        movetoplayer()
-    def movetoplayer(self):
-        if playerx > myx:
-            moveright
-        elif playery > myy:
-            moveup
-        elif playerx < myx:
-            moveleft
-        elif playery < myy:
-            movedown
+        self.moveToPlayer()
+    def moveToPlayer(self):
+        if player.x > self.x:
+            self.moveRight()
+        elif player.y > self.y:
+            self.moveUp()
+        elif player.x < self.x:
+            self.moveLeft()
+        elif player.y < self.y:
+            self.moveDown()
 
 monst = myMonster(1,1,'dog.png')
 game.addGameObject(monst)

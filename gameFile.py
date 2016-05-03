@@ -5,10 +5,11 @@ from pygame.locals import *
 KEYS={"UP":273,"RIGHT":275,"DOWN":274,"LEFT":276}
 
 
-
-
 def distance(p0, p1):
     return math.sqrt((p0[0]-p1[0])**2 + (p0[1]-p1[1])**2)
+
+def gridDistance(p0, p1):
+    return abs(p0[0]-p1[0]) + abs(p0[1]-p1[1])
         
 class VisualEffect:
     def __init__(self, imagePath, turnsLeft=1):
@@ -16,6 +17,8 @@ class VisualEffect:
         self.turnsLeft=turnsLeft       
 
 class GameController:
+    textHeight = 75
+    
     def __init__(self, boardWidth=25, boardHeight=20, tileSize = 32):
         pygame.init()
         
@@ -25,14 +28,17 @@ class GameController:
         self.effects=[]
         self.backgroundImage=0
         self.errorImage=0
-        self.graphics=GraphicsController(screenWidth = boardWidth*tileSize,
-                                         screenHeight = boardHeight*tileSize,
-                                         tileWidth = tileSize, tileHeight = tileSize)
+        self.graphics=GraphicsController(gameWidth  = boardWidth*tileSize,
+                                         gameHeight = boardHeight*tileSize,
+                                         tileWidth  = tileSize,
+                                         tileHeight = tileSize,
+                                         textHeight = GameController.textHeight)
         self.objects=[]
         self.imageDict={}
         self.tileSize=tileSize
         self.loadImages()
-        self.player=None  
+        self.player=None
+        self.currentMessage = ""
 
     def loadImages(self): #Loads all of the image files in the images folder into the game
         imageLocations=[]
@@ -95,6 +101,10 @@ class GameController:
             elif not isinstance(currentObject, Player): #It is not a player or a monster's turn, it is likely scenery or an object's turn
                 currentObject.takeTurn()
                 objectTurn=(objectTurn+1)%len(self.objects)
+            if(player):
+                self.graphics.drawScoreBoard(self.currentMessage, "Score: " + str(self.player.score))
+            else:
+                self.graphics.drawScoreBoard(self.currentMessage, "")
             self.drawMap()
             pygame.display.flip()
         pygame.quit()
@@ -115,11 +125,15 @@ class GameController:
                 return True
         return False
 
-    def spaceHasObjective(self, x, y):
+    def spaceHasObjective(self, x, y):  #Checks if there is anything in a space
         for obj in self.objects:
             if obj.x==x and obj.y==y and isinstance(obj, Objective):
                 return True
         return False
+
+    def spaceIsFull(self, x, y):        #Checks if there is an object that a monster can't move over
+        return self.spaceHasObject(x, y) and not self.spaceHasObjective(x, y)
+        
 
     def playerTouchObjective(self, x, y):
         for obj in self.objects:
@@ -133,12 +147,21 @@ class GameController:
 
     def playerScorePoints(self, numPoints):
         self.player.score += 1
-        print self.player.score
 
     def removeObject(self, theObject):
         for obj in self.objects:
             if obj == theObject:
                 self.objects.remove(obj)
+
+    def getAllOfType(self, typeName):
+        elements = []
+        for obj in self.objects:
+            if isinstance(obj, typeName):
+                elements.append(obj)
+        return elements
+
+    def log(self, text):
+        self.currentMessage = text
         
 class GameObject(object): #The class that ingame objects inherit from
     def __init__(self, x, y, spriteName):
@@ -151,16 +174,33 @@ class GameObject(object): #The class that ingame objects inherit from
         pass
 
     def moveUp(self):
-        self.y += 1
+        if not self.controller.spaceIsFull(self.x, self.y + 1):
+            self.y += 1
         
     def moveDown(self):
-        self.y -= 1
+        if not self.controller.spaceIsFull(self.x, self.y - 1):
+            self.y -= 1
 
     def moveLeft(self):
-        self.x -= 1
+        if not self.controller.spaceIsFull(self.x - 1, self.y):
+            self.x -= 1
 
     def moveRight(self):
-        self.x += 1
+        if not self.controller.spaceIsFull(self.x + 1, self.y):
+            self.x += 1
+
+    def getClosestOfType(self, typeName):
+        candidates = self.controller.getAllOfType(typeName)
+        minDist = 100000
+        closest = None
+        for el in candidates:
+            if(el == self):
+                continue
+            thisDist = gridDistance((el.x, el.y), (self.x, self.y))
+            if thisDist < minDist:
+                minDist = thisDist
+                closest = el
+        return closest
 
 class Monster(GameObject):
     def __init__(self, x, y, spriteName):
@@ -179,12 +219,13 @@ class Monster(GameObject):
         currentPos=(self.x, self.y)
         goal=(x, y)
         while moves>0:
-            possibleMoves=((1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1))
+            #possibleMoves=((1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1), (0, -1), (1, -1)) #Allows Diagonal moves
+            possibleMoves=((1, 0), (0, 1), (-1, 0), (0, -1))
             bestDist=distance(currentPos, goal)
             bestMove=(0, 0)
             for move in possibleMoves:
                 newPos=[currentPos[0]+move[0], currentPos[1]+move[1]]
-                if not self.controller.spaceHasObject(newPos[0], newPos[1]):
+                if not self.controller.spaceIsFull(newPos[0], newPos[1]):
                     dist=distance(newPos, goal)
                     if dist<bestDist:
                         bestDist=dist
@@ -203,29 +244,44 @@ class Monster(GameObject):
                     return 3
         return 1
 
+    def moveTowardsPlayer(self):
+        thePlayer = self.controller.player
+        xGoal = thePlayer.x
+        yGoal = thePlayer.y
+        self.moveTowardsSpace(xGoal, yGoal, 1)
+
 class Objective(GameObject):
     def onPlayerTouch(self):
         pass
 
 class Coin(Objective):
+    
+    def __init__(self, x, y, spriteName = 'coin.png'):
+        self.x = x
+        self.y = y
+        self.spriteName = spriteName
+        self.spriteIndex = None
+    
     def onPlayerTouch(self):
         self.controller.playerScorePoints(1)
-        self.controller.removeObject(self)
+        
 
         xPlace = random.randint(0, self.controller.boardWidth - 1)
         yPlace = random.randint(0, self.controller.boardHeight - 1)
         placeAttempts = 0
 
         while(placeAttempts < 50):
-            if(not self.controller.spaceHasObject(xPlace, yPlace)):
-                newCoin = Coin(xPlace, yPlace, 'coin.png')
-                game.addGameObject(newCoin)
+            if(not self.controller.spaceHasObject(xPlace, yPlace)): #Found an open space, moving coin to it
+                self.x = xPlace
+                self.y = yPlace
                 break
-            xPlace = random.randint(0, self.controller.boardWidth - 1)
+            
+            xPlace = random.randint(0, self.controller.boardWidth - 1) #Didn't find an open space
             yPlace = random.randint(0, self.controller.boardHeight - 1)
             placeAttempts += 1
             if(placeAttempts == 50):
                 print "Failed coin placement attempt"
+                self.controller.removeObject(self)  #Delete the coin
 
 class Player(GameObject):
     def __init__(self, x, y, spriteName):
@@ -242,8 +298,8 @@ class Player(GameObject):
     def takeTurn(self, event):
         moved = False
         if event.type==pygame.MOUSEBUTTONDOWN:
-            x,y = self.mouse(event)
-            if self.controller.spaceHasObjective(x, y) or not self.controller.spaceHasObject(x,y):
+            x, y = self.mouse(event)
+            if not self.controller.spaceIsFull(x,y):
                 self.x = x
                 self.y = y
                 moved = True
@@ -262,12 +318,12 @@ class Player(GameObject):
                 y += 1
             else:
                 moved = False
-            if self.controller.spaceHasObjective(x, y) or not self.controller.spaceHasObject(x,y):
+            if not self.controller.spaceIsFull(x,y):
                 self.x=x
                 self.y=y
                 moved = True
 
-        if(moved and (self.controller.spaceHasObjective(x, y) or not self.controller.spaceHasObject(x,y))):
+        if moved and (not self.controller.spaceIsFull(x,y)):
             self.controller.playerTouchObjective(x, y)
 
         return moved
@@ -275,7 +331,7 @@ class Player(GameObject):
 game = GameController(20,20,35)
 game.setBackgroundImage('caveTile.png')
 
-theCoin = Coin(10, 10, 'coin.png')
+theCoin = Coin(10, 10)
 game.addGameObject(theCoin)
 
 player = game.player

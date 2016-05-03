@@ -13,6 +13,7 @@ game.addGameObject(player)
 
 for x in range(10):
     #put walls down at (x,y)
+    game.placeWall(x+5, 5)
     pass
 
 
