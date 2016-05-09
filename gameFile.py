@@ -85,6 +85,15 @@ class GameController:
         """handle events as a loop"""
         def nextObj(obj_num, obj_list):
             return (obj_num+1)%len(obj_list)
+        #add a coin
+        x = random.randint(0,self.boardWidth)
+        y = random.randint(0,self.boardHeight)
+        while self.spaceHasObject(x,y):
+            x = random.randint(0,self.boardWidth)
+            y = random.randint(0,self.boardHeight)
+        theCoin = Coin(x,y)
+        self.addGameObject(theCoin) 
+
         run=True
         self.drawMap()
         objectTurn=0
@@ -339,8 +348,5 @@ class Player(GameObject):
         
 game = GameController(20,20,35)
 game.setBackgroundImage('caveTile.png')
-
-theCoin = Coin(10, 10)
-game.addGameObject(theCoin)
 
 player = game.player
