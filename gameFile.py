@@ -111,6 +111,9 @@ class GameController:
                 if e.type==pygame.VIDEORESIZE:
                     self.screenWidth=e.dict['size'][0]
                     self.screenHeight=e.dict['size'][1]
+                    self.drawScoreBoard()
+                    self.drawMap()
+                    pygame.display.flip()
                 if isinstance(currentObject, Player): #It is the player's turn
                     if currentObject.tryTurn(e):    #The player trys to move with the event
                         playerMoving = True
