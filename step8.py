@@ -11,13 +11,6 @@ from gameFile import *
 player = Player(1, 2, 'cat.png')
 game.addGameObject(player)
 
-secondCoin = Coin(10, 15)
-thirdCoin = Coin(15, 10)
-fourthCoin = Coin(15, 15)
-game.addGameObject(secondCoin)
-game.addGameObject(thirdCoin)
-game.addGameObject(fourthCoin)
-
 for x in range(5):
     game.placeWall(x+5, 5)
 
@@ -36,7 +29,6 @@ class myMonster(Monster):
                 nearestCoin = coin
         self.moveToThing(nearestCoin)
     def moveToThing(self, thing):
-        game.log(str(self.x - thing.x) + ", " + str(self.y - thing.y))
         if thing.x > self.x:
             self.moveRight()
         elif thing.y > self.y:

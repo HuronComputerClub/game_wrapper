@@ -24,6 +24,8 @@ class GameController:
         
         self.boardWidth=boardWidth
         self.boardHeight=boardHeight
+        self.screenWidth=boardWidth*tileSize
+        self.screenHeight=boardHeight*tileSize + GameController.textHeight
         self.stickerBoard=[[-1 for y in range(0, boardHeight)] for x in xrange(0, boardWidth)]
         self.effects=[]
         self.backgroundImage=0
@@ -85,29 +87,38 @@ class GameController:
         """handle events as a loop"""
         def nextObj(obj_num, obj_list):
             return (obj_num+1)%len(obj_list)
-        #add a coin
-        x = random.randint(0,self.boardWidth)
-        y = random.randint(0,self.boardHeight)
-        while self.spaceHasObject(x,y):
-            x = random.randint(0,self.boardWidth)
-            y = random.randint(0,self.boardHeight)
-        theCoin = Coin(x,y)
-        self.addGameObject(theCoin) 
+        #adds a coin to the board if there is a spot open
+        theCoin = Coin(-1,-1)
+        if self.tryToRandomlyPlaceObject(theCoin):
+            self.addGameObject(theCoin) 
 
         run=True
+        self.drawScoreBoard()
         self.drawMap()
+        pygame.display.flip()
         objectTurn=0
         while run==True:
+            
             currentObject=self.objects[objectTurn]  #The object whose turn it is
             while isinstance(currentObject, Wall): #skip over walls
                 objectTurn=nextObj(objectTurn,self.objects)
                 currentObject=self.objects[objectTurn]
+
+            playerMoving = False
             for e in pygame.event.get():            #Handle events
                 if e.type==pygame.QUIT:
                     run=False
+                if e.type==pygame.VIDEORESIZE:
+                    self.screenWidth=e.dict['size'][0]
+                    self.screenHeight=e.dict['size'][1]
                 if isinstance(currentObject, Player): #It is the player's turn
                     if currentObject.tryTurn(e):    #The player trys to move with the event
-                        objectTurn=nextObj(objectTurn,self.objects)                       
+                        playerMoving = True
+                        objectTurn=nextObj(objectTurn,self.objects)
+            if not playerMoving and isinstance(currentObject, Player): #Skip drawing if the player isn't moving on their turn
+                pygame.time.wait(1000/50)
+                continue #Skip drawing
+            
             if isinstance(currentObject, Monster):  #It is a monster's turn
                 currentObject.takeTurn()
                 time.sleep(0.1)
@@ -115,18 +126,22 @@ class GameController:
             elif not isinstance(currentObject, Player): #It is not a player or a monster's turn, it is likely scenery or an object's turn
                 currentObject.takeTurn()
                 objectTurn=nextObj(objectTurn,self.objects) 
-            if(player):
-                self.graphics.drawScoreBoard(self.currentMessage, "Score: " + str(self.player.score))
-            else:
-                self.graphics.drawScoreBoard(self.currentMessage, "")
-
+            self.drawScoreBoard()
             self.drawMap()
             pygame.display.flip()
         pygame.quit()
 
+    def drawScoreBoard(self):
+        if(self.player):
+            self.graphics.drawScoreBoard(self.currentMessage, "Score: " + str(self.player.score))
+        else:
+            self.graphics.drawScoreBoard(self.currentMessage, "")
+        
     def getTileOfScreenPosition(self, pos):
-        tileX=pos[0]/self.tileSize
-        tileY=(self.graphics.screenHeight - pos[1])/self.tileSize
+        tileScaledX = self.tileSize * self.screenWidth / self.graphics.screenWidth
+        tileScaledY = self.tileSize * self.screenHeight / self.graphics.screenHeight
+        tileX = pos[0] / tileScaledX
+        tileY = (self.screenHeight - pos[1]) / tileScaledY
         return (tileX, tileY)
 
     def getPlayerLoc(self):
@@ -159,6 +174,17 @@ class GameController:
         if not self.spaceHasObject(x, y):
             theWall=Wall(x, y, 'wall.png')
             self.addGameObject(theWall)
+
+    def tryToRandomlyPlaceObject(self, obj):
+        for attempt in range(500):
+            x = random.randint(0, self.boardWidth - 1)
+            y = random.randint(0, self.boardHeight - 1)
+            
+            if not self.spaceHasObject(x, y): #Found an open space, moving coin to it
+                obj.x = x
+                obj.y = y
+                return True
+        return False
 
     def playerScorePoints(self, numPoints):
         self.player.score += numPoints
@@ -283,23 +309,9 @@ class Coin(Objective):
     def onPlayerTouch(self):
         self.controller.playerScorePoints(1)
         
-
-        xPlace = random.randint(0, self.controller.boardWidth - 1)
-        yPlace = random.randint(0, self.controller.boardHeight - 1)
-        placeAttempts = 0
-
-        while(placeAttempts < 50):
-            if(not self.controller.spaceHasObject(xPlace, yPlace)): #Found an open space, moving coin to it
-                self.x = xPlace
-                self.y = yPlace
-                break
-            
-            xPlace = random.randint(0, self.controller.boardWidth - 1) #Didn't find an open space
-            yPlace = random.randint(0, self.controller.boardHeight - 1)
-            placeAttempts += 1
-            if(placeAttempts == 50):
-                print "Failed coin placement attempt"
-                self.controller.removeObject(self)  #Delete the coin
+        if not self.controller.tryToRandomlyPlaceObject(self):
+            print "Coin Placement Failed"
+            self.controller.removeObject(self)  #Delete the coin
 
 class Player(GameObject):
     def __init__(self, x, y, spriteName):
@@ -348,5 +360,3 @@ class Player(GameObject):
         
 game = GameController(20,20,35)
 game.setBackgroundImage('caveTile.png')
-
-player = game.player
