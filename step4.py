@@ -11,8 +11,9 @@ from gameFile import *
 player = Player(1, 2, 'cat.png')
 game.addGameObject(player)
 
-for x in range(5):
-    game.placeWall(x+5, 5)
+for x in range(10):
+    for y in range(10):
+        game.placeWall(x+5, y)
 
 class myMonster(Monster):
     def takeTurn(self):

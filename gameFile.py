@@ -83,28 +83,34 @@ class GameController:
 
     def run(self):
         """handle events as a loop"""
+        def nextObj(obj_num, obj_list):
+            return (obj_num+1)%len(obj_list)
         run=True
         self.drawMap()
         objectTurn=0
         while run==True:
             currentObject=self.objects[objectTurn]  #The object whose turn it is
+            while isinstance(currentObject, Wall): #skip over walls
+                objectTurn=nextObj(objectTurn,self.objects)
+                currentObject=self.objects[objectTurn]
             for e in pygame.event.get():            #Handle events
                 if e.type==pygame.QUIT:
                     run=False
                 if isinstance(currentObject, Player): #It is the player's turn
                     if currentObject.tryTurn(e):    #The player trys to move with the event
-                        objectTurn=(objectTurn+1)%len(self.objects)                       
+                        objectTurn=nextObj(objectTurn,self.objects)                       
             if isinstance(currentObject, Monster):  #It is a monster's turn
                 currentObject.takeTurn()
-                time.sleep(.1)
-                objectTurn=(objectTurn+1)%len(self.objects)
+                time.sleep(0.1)
+                objectTurn=nextObj(objectTurn,self.objects) 
             elif not isinstance(currentObject, Player): #It is not a player or a monster's turn, it is likely scenery or an object's turn
                 currentObject.takeTurn()
-                objectTurn=(objectTurn+1)%len(self.objects)
+                objectTurn=nextObj(objectTurn,self.objects) 
             if(player):
                 self.graphics.drawScoreBoard(self.currentMessage, "Score: " + str(self.player.score))
             else:
                 self.graphics.drawScoreBoard(self.currentMessage, "")
+
             self.drawMap()
             pygame.display.flip()
         pygame.quit()
@@ -142,11 +148,11 @@ class GameController:
 
     def placeWall(self, x, y):
         if not self.spaceHasObject(x, y):
-            theWall=GameObject(x, y, 'wall.png')
+            theWall=Wall(x, y, 'wall.png')
             self.addGameObject(theWall)
 
     def playerScorePoints(self, numPoints):
-        self.player.score += 1
+        self.player.score += numPoints
 
     def removeObject(self, theObject):
         for obj in self.objects:
@@ -254,6 +260,9 @@ class Objective(GameObject):
     def onPlayerTouch(self):
         pass
 
+class Wall(GameObject):
+    pass
+
 class Coin(Objective):
     
     def __init__(self, x, y, spriteName = 'coin.png'):
@@ -297,9 +306,9 @@ class Player(GameObject):
         return False
     def takeTurn(self, event):
         moved = False
-        if event.type==pygame.MOUSEBUTTONDOWN:
+        if event.type==pygame.MOUSEBUTTONDOWN and event.button==1: #register only Left clicks
             x, y = self.mouse(event)
-            if not self.controller.spaceIsFull(x,y):
+            if not self.controller.spaceIsFull(x,y) and (abs(self.x-x)+abs(self.y-y)==1):
                 self.x = x
                 self.y = y
                 moved = True
