@@ -8,7 +8,7 @@ from gameFile import *
 
 
 #create a player character
-player = Player(1, 2, 'cat.png')
+player = Player(1, 2, 'person.png')
 game.addGameObject(player)
 
 game.run()

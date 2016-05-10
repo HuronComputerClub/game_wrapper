@@ -6,9 +6,11 @@ KEYS={"UP":273,"RIGHT":275,"DOWN":274,"LEFT":276}
 
 
 def distance(p0, p1):
+    """calculate the distance between two (x,y) coordinates"""
     return math.sqrt((p0[0]-p1[0])**2 + (p0[1]-p1[1])**2)
 
 def gridDistance(p0, p1):
+    """calculate the number of grid squares between two coordinates, moving only up/down/left/right"""
     return abs(p0[0]-p1[0]) + abs(p0[1]-p1[1])
         
 class VisualEffect:
@@ -17,6 +19,7 @@ class VisualEffect:
         self.turnsLeft=turnsLeft       
 
 class GameController:
+    """Code to run the game"""
     textHeight = 75
     
     def __init__(self, boardWidth=25, boardHeight=20, tileSize = 32):
@@ -153,19 +156,26 @@ class GameController:
                 return (obj.x, obj.y)
 
     def spaceHasObject(self, x, y):
+        """Tells whether space x,y has any item in it"""
         for obj in self.objects:
             if obj.x==x and obj.y==y:
                 return True
         return False
-
-    def spaceHasObjective(self, x, y):  #Checks if there is anything in a space
+    def spaceHasNonObjective(self,x,y):
+        """Tells whether space x,y has a solid item in it"""
+        for obj in self.objects:
+            if obj.x==x and obj.y==y and not isinstance(obj, Objective):
+                return True
+        return False
+    def spaceHasObjective(self, x, y):
+        """Tells whether space x,y has a npn-solid item in it (like a coin)"""
         for obj in self.objects:
             if obj.x==x and obj.y==y and isinstance(obj, Objective):
                 return True
         return False
 
     def spaceIsFull(self, x, y):        #Checks if there is an object that a monster can't move over
-        return self.spaceHasObject(x, y) and not self.spaceHasObjective(x, y)
+        return self.spaceHasNonObjective(x, y)
         
 
     def playerTouchObjective(self, x, y):
@@ -356,7 +366,7 @@ class Player(GameObject):
                 self.y=y
                 moved = True
 
-        if moved and (not self.controller.spaceIsFull(x,y)):
+        if moved and self.controller.spaceHasObjective(x,y):
             self.controller.playerTouchObjective(x, y)
 
         return moved

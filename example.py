@@ -12,14 +12,14 @@ game = GameController(20,20,35)
 game.setBackgroundImage('borderTile.png')
 
 #create an instance of your modified monster
-character = myMonster(1, 1, 'circle.png')
+character = myMonster(1, 1, 'dog.png')
 dog = myMonster(1, 3, 'dog.png')
 
 game.addGameObject(character)
 game.addGameObject(dog)
 
 #create a player character
-player = Player(1, 2, 'cat.png')
+player = Player(1, 2, 'person.png')
 game.addGameObject(player)
 
 game.run()
