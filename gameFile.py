@@ -71,6 +71,13 @@ class GameController:
                     if effect.x==x and effect.y==y:
                         self.graphics.drawTile(x, y, effect.spriteIndex)
         self.graphics.drawBorders()
+    def drawBorderWalls(self):
+        for x in range(self.boardWidth):
+            self.placeWall(x,0)
+            self.placeWall(x,self.boardHeight-1)
+        for y in range(self.boardHeight):
+            self.placeWall(0,y)
+            self.placeWall(self.boardWidth-1,y)
 
     def spriteIndexFromName(self, imageName):
         return self.imageDict.get(imageName, self.errorImage)
@@ -230,18 +237,26 @@ class GameObject(object): #The class that ingame objects inherit from
     def moveUp(self):
         if not self.controller.spaceIsFull(self.x, self.y + 1):
             self.y += 1
-        
+            return True
+        return False
+
     def moveDown(self):
         if not self.controller.spaceIsFull(self.x, self.y - 1):
             self.y -= 1
+            return True
+        return False
 
     def moveLeft(self):
         if not self.controller.spaceIsFull(self.x - 1, self.y):
             self.x -= 1
+            return True
+        return False
 
     def moveRight(self):
         if not self.controller.spaceIsFull(self.x + 1, self.y):
             self.x += 1
+            return True
+        return False
 
     def getClosestOfType(self, typeName):
         candidates = self.controller.getAllOfType(typeName)
@@ -373,3 +388,4 @@ class Player(GameObject):
         
 game = GameController(20,20,35)
 game.setBackgroundImage('caveTile.png')
+game.drawBorderWalls()

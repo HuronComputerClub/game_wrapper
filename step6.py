@@ -15,6 +15,10 @@ for x in range(10):
     game.placeWall(x+5, 5)
     pass
 
+newCoin = Coin(1,1)
+game.tryToRandomlyPlaceObject(newCoin)
+game.addGameObject(newCoin)
+
 class myMonster(Monster):
     def takeTurn(self):
         myCoin = self.getClosestOfType(Coin)

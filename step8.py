@@ -13,7 +13,6 @@ game.addGameObject(player)
 
 for x in range(5):
     game.placeWall(x+5, 5)
-
 #Scope!
 def distbtw(o1, o2):
     return abs(o1.x - o2.x) + abs(o1.y - o2.y)
@@ -29,14 +28,24 @@ class myMonster(Monster):
                 nearestCoin = coin
         self.moveToThing(nearestCoin)
     def moveToThing(self, thing):
+        moved = False
         if thing.x > self.x:
-            self.moveRight()
-        elif thing.y > self.y:
-            self.moveUp()
-        elif thing.x < self.x:
-            self.moveLeft()
-        elif thing.y < self.y:
-            self.moveDown()
+            moved = self.moveRight()
+            if not moved:
+                moved = self.moveDown()
+        if thing.x < self.x and not moved:
+            moved = self.moveLeft()
+            if not moved:
+                moved = self.moveDown()  
+        if thing.y > self.y and not moved:
+            moved = self.moveUp()
+            if not moved:
+                moved = self.moveRight()            
+        if thing.y < self.y and not moved:
+            moved = self.moveDown()
+            if not moved:
+                moved = self.moveRight()            
+
     def distanceTo(self, thing):
         return abs(self.x - thing.x) + abs(self.y - thing.y)
 
